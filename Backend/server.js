@@ -3,6 +3,7 @@ const cors = require('cors')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const verifyToken = require('./middleware/authMiddleware.js')
+const cookieParser = require('cookie-parser')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -11,8 +12,11 @@ const SECRET_KEY = process.env.SECRET_KEY
 //Middleware
 app.use(express.json())
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: 'http://localhost:5173',
+    credentials: true
 }))
+app.use(cookieParser())
+
 const user = {
     username: 'Subin',
     password: '1234'
@@ -35,13 +39,25 @@ app.post('/login', (req, res) => {
         })
     }
 
-    const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1hr" })
+    const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" })
+
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        path: '/',
+        maxAge: 60 * 60 * 1000 //1 hr
+    })
 
     return res.status(200).json({
         success: true,
-        message: 'Login successful',
-        token: token
+        message: 'Login successful'        
     })
+})
+
+app.post('/logout', (req, res) => {
+    res.clearCookie("token", { path: '/' })
+    res.json({ message: 'Logged out successfully' })
 })
 
 app.get('/profile', verifyToken, (req, res) => {

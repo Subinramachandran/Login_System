@@ -1,76 +1,75 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+// Login.jsx
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "./AuthContext";
 
-const Login = ({ setIsLoggedIn }) => {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [message, setMessage] = useState("")
-  const [isSuccess, setIsSuccess] = useState(false)
-  const navigate = useNavigate()
+const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const { setProfile } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
+      const res = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        credentials: "include", // important!
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-      })
+        body: JSON.stringify({ username, password }),
+      });
 
-      const data = await response.json()
+      const data = await res.json();
 
-      if (response.ok) {
-        localStorage.setItem("token", data.token)
-        setIsLoggedIn(true)           // ✅ Update login state
-        setMessage(data.message)
-        setIsSuccess(true)
-        navigate("/dashboard")        // ✅ Redirect to Dashboard
+      if (res.ok) {
+        // set profile manually (no need to store token in localStorage)
+        setProfile({ username });
+        navigate("/dashboard");
       } else {
-        setIsSuccess(false)
-        setMessage(data.message)
+        setMessage(data.message);
       }
-
-    } catch (error) {
-      setIsSuccess(false)
-      setMessage("Login failed")
+    } catch (err) {
+      setMessage("Login failed");
     }
-  }
+  };
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="flex flex-col shadow-lg p-4 w-96">
-        <h1 className="text-blue-600 text-3xl font-bold text-center">Login</h1>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Login</h2>
 
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
-          className="mt-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-        />
+        {message && (
+          <p className="text-center mb-4 text-red-500 font-medium">{message}</p>
+        )}
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          className="mt-4 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
 
-        <button
-          onClick={handleLogin}
-          className="mt-4 p-2 font-bold text-lg bg-blue-400 text-white rounded-lg cursor-pointer"
-        >
-          Login
-        </button>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
 
-        {message &&
-          <p className={`mt-4 p-2 text-center font-bold ${isSuccess ? 'text-green-600' : 'text-red-600'}`}>
-            {message}
-          </p>
-        }
+          <button
+            type="submit"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+          >
+            Login
+          </button>
+        </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
