@@ -2,6 +2,7 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "./AuthContext";
+import axios from 'axios'
 
 
 const Login = () => {
@@ -14,24 +15,22 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/login", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      const res = await axios.post("http://localhost:5000/login", 
+        {username, password},
+        {
+          withCredentials: true
+        }
+      );
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // set profile manually (no need to store token in localStorage)
-        setProfile({ username });
-        navigate("/dashboard");
-      } else {
-        setMessage(data.message);
-      }
+      const data = await res.data;
+      //Login success
+      setProfile({username: data.username || username})  
+      navigate('/dashboard')    
     } catch (err) {
-      setMessage("Login failed");
+      console.log("Login error:", err.response?.data || err.message);
+
+      // Display backend message if exists
+      setMessage(err.response?.data?.message || "Login failed");
     }
   };
 

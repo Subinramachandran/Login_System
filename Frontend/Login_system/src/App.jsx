@@ -5,8 +5,11 @@ import Dashboard from "./Dashboard";
 import { AuthProvider } from "./AuthContext";
 import ProtectedRoute from "./ProtectedRoute";
 
+
 function App() {
+  
   return (
+
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />

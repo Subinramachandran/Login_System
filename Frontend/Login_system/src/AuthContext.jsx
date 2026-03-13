@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from "react";
+import axios from 'axios'
 
 export const AuthContext = createContext();
 
@@ -10,18 +11,15 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/profile", {
-        credentials: "include"
+      const res = await axios.get("http://localhost:5000/profile", {
+        withCredentials: "include"
       });
 
       if (res.status === 401) {
         setProfile(null); // not logged in
         return;
-      }
-
-      if (!res.ok) throw new Error("Failed to fetch profile");
-
-      const data = await res.json();
+      }      
+      const data = await res.data;
       setProfile(data.user || null);
     } catch (err) {
       console.error("Profile fetch error:", err);
@@ -38,9 +36,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch("http://localhost:5000/logout", {
-        method: "POST",
-        credentials: "include",
+      await axios.post("http://localhost:5000/logout", {
+        withCredentials: "include",
       });
     } catch (err) {
       console.error(err);
