@@ -1,22 +1,21 @@
-// AuthContext.jsx
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [profile, setProfile] = useState(null); // null means not logged in
-  const [loading, setLoading] = useState(false); // no fetch on start
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true); // true while checking login
 
-  // Call this after successful login
+  // Fetch profile function
   const fetchProfile = async () => {
     setLoading(true);
     try {
       const res = await fetch("http://localhost:5000/profile", {
-        credentials: "include",
+        credentials: "include"
       });
 
       if (res.status === 401) {
-        setProfile(null); // still not logged in
+        setProfile(null); // not logged in
         return;
       }
 
@@ -31,6 +30,11 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  // Call on mount to persist login
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   const logout = async () => {
     try {
