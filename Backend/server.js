@@ -11,10 +11,12 @@ const SECRET_KEY = process.env.SECRET_KEY
 
 //Middleware
 app.use(express.json())
+// Right after const app = express()
 app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true
-}))
+  origin: 'http://localhost:5173',
+  credentials: true 
+}));
+
 app.use(cookieParser())
 
 const user = {
@@ -39,13 +41,14 @@ app.post('/login', (req, res) => {
         })
     }
 
-    const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1hr" })
+    const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" })
 
     res.cookie("token", token, {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: "lax",        
-        maxAge: 60 * 60 * 1000 //1 hr
+        maxAge: 60 * 60 * 1000,
+        path: '/'
     })
 
     return res.status(200).json({

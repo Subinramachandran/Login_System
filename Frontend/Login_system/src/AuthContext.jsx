@@ -1,44 +1,48 @@
 import { createContext, useState, useEffect } from "react";
-import axios from 'axios'
+import axios from "axios";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true); // true while checking login
+  const [loading, setLoading] = useState(true);
 
-  // Fetch profile function
   const fetchProfile = async () => {
     setLoading(true);
+
     try {
       const res = await axios.get("http://localhost:5000/profile", {
-        withCredentials: "include"
+        withCredentials: true,
       });
 
-      if (res.status === 401) {
-        setProfile(null); // not logged in
-        return;
-      }      
-      const data = await res.data;
+      const data = res.data;
       setProfile(data.user || null);
+
     } catch (err) {
-      console.error("Profile fetch error:", err);
-      setProfile(null);
+
+      // 👇 401 means not logged in
+      if (err.response && err.response.status === 401) {
+        setProfile(null);
+      } else {
+        console.error("Profile fetch error:", err);
+      }
+
     } finally {
       setLoading(false);
     }
   };
 
-  // Call on mount to persist login
   useEffect(() => {
     fetchProfile();
   }, []);
 
   const logout = async () => {
     try {
-      await axios.post("http://localhost:5000/logout", {
-        withCredentials: "include",
-      });
+      await axios.post(
+        "http://localhost:5000/logout",
+        {},
+        { withCredentials: true }
+      );
     } catch (err) {
       console.error(err);
     } finally {
@@ -47,7 +51,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ profile, setProfile, fetchProfile, logout, loading }}>
+    <AuthContext.Provider
+      value={{ profile, setProfile, fetchProfile, logout, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
